@@ -33,7 +33,7 @@ function saveHomework() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(homework));
 }
 
-function render(movedId = null) {
+function render() {
   board.innerHTML = DAYS.map((day) => {
     const cards = homework.filter((item) => item.day === day);
     return `
@@ -43,14 +43,10 @@ function render(movedId = null) {
           <span class="day-count">${cards.length}</span>
         </div>
         <div class="cards" data-day="${day}">
-          ${cards.map((item, index) => cardTemplate(item, index, movedId)).join("")}
+          ${cards.map(cardTemplate).join("")}
         </div>
       </section>`;
   }).join("");
-  if (movedId) {
-    board.classList.add("is-moving");
-    requestAnimationFrame(() => board.classList.remove("is-moving"));
-  }
   bindBoardEvents();
   updateSummary();
   emptyState.hidden = homework.length > 0;
@@ -80,9 +76,9 @@ function applyTheme(theme) {
   });
 }
 
-function cardTemplate(item, index, movedId) {
+function cardTemplate(item, index) {
   return `
-    <article class="homework-card ${item.completed ? "completed" : ""} ${item.id === movedId ? "just-moved" : ""}" style="--card-index: ${index}" draggable="true" data-id="${item.id}">
+    <article class="homework-card ${item.completed ? "completed" : ""}" style="--card-index: ${index}" draggable="true" data-id="${item.id}">
       <button class="card-menu" type="button" data-delete="${item.id}" aria-label="Delete ${escapeHtml(item.task)}">×</button>
       <h3 class="task-name">${escapeHtml(item.task)}</h3>
       <span class="subject">${escapeHtml(item.subject)}</span>
@@ -117,9 +113,21 @@ function bindBoardEvents() {
       event.preventDefault();
       const item = homework.find((entry) => entry.id === draggedId);
       if (item && item.day !== column.dataset.day) {
+        const draggedCard = document.querySelector(`[data-id="${item.id}"]`);
+        const targetCards = column.querySelector(".cards");
         item.day = column.dataset.day;
         saveHomework();
-        render(item.id);
+        if (draggedCard && targetCards) {
+          targetCards.appendChild(draggedCard);
+          draggedCard.classList.remove("dragging");
+          draggedCard.classList.add("just-moved");
+          setTimeout(() => draggedCard.classList.remove("just-moved"), 500);
+          document.querySelectorAll(".day-column").forEach((dayColumn) => {
+            const count = dayColumn.querySelector(".cards").children.length;
+            dayColumn.querySelector(".day-count").textContent = count;
+          });
+          updateSummary();
+        }
         showToast(`Moved to ${item.day}`);
       }
     });
