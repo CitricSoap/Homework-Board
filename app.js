@@ -33,7 +33,7 @@ function saveHomework() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(homework));
 }
 
-function render() {
+function render(movedId = null) {
   board.innerHTML = DAYS.map((day) => {
     const cards = homework.filter((item) => item.day === day);
     return `
@@ -43,10 +43,14 @@ function render() {
           <span class="day-count">${cards.length}</span>
         </div>
         <div class="cards" data-day="${day}">
-          ${cards.map(cardTemplate).join("")}
+          ${cards.map((item, index) => cardTemplate(item, index, movedId)).join("")}
         </div>
       </section>`;
   }).join("");
+  if (movedId) {
+    board.classList.add("is-moving");
+    requestAnimationFrame(() => board.classList.remove("is-moving"));
+  }
   bindBoardEvents();
   updateSummary();
   emptyState.hidden = homework.length > 0;
@@ -76,9 +80,9 @@ function applyTheme(theme) {
   });
 }
 
-function cardTemplate(item, index) {
+function cardTemplate(item, index, movedId) {
   return `
-    <article class="homework-card ${item.completed ? "completed" : ""}" style="--card-index: ${index}" draggable="true" data-id="${item.id}">
+    <article class="homework-card ${item.completed ? "completed" : ""} ${item.id === movedId ? "just-moved" : ""}" style="--card-index: ${index}" draggable="true" data-id="${item.id}">
       <button class="card-menu" type="button" data-delete="${item.id}" aria-label="Delete ${escapeHtml(item.task)}">×</button>
       <h3 class="task-name">${escapeHtml(item.task)}</h3>
       <span class="subject">${escapeHtml(item.subject)}</span>
@@ -115,7 +119,7 @@ function bindBoardEvents() {
       if (item && item.day !== column.dataset.day) {
         item.day = column.dataset.day;
         saveHomework();
-        render();
+        render(item.id);
         showToast(`Moved to ${item.day}`);
       }
     });
