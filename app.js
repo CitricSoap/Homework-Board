@@ -7,10 +7,18 @@ const modalBackdrop = document.querySelector("#modalBackdrop");
 const form = document.querySelector("#homeworkForm");
 const dayInput = document.querySelector("#dayInput");
 const toast = document.querySelector("#toast");
+const welcomeBackdrop = document.querySelector("#welcomeBackdrop");
+const welcomeForm = document.querySelector("#welcomeForm");
+const nameInput = document.querySelector("#nameInput");
+const welcomeHeading = document.querySelector("#welcomeHeading");
+const themePicker = document.querySelector("#themePicker");
+const themeButton = document.querySelector("#themeButton");
 
 let homework = loadHomework();
 let draggedId = null;
 let toastTimer;
+const PROFILE_KEY = "homework-board-profile";
+const THEME_KEY = "homework-board-theme";
 
 function loadHomework() {
   try {
@@ -29,7 +37,7 @@ function render() {
   board.innerHTML = DAYS.map((day) => {
     const cards = homework.filter((item) => item.day === day);
     return `
-      <section class="day-column" data-day="${day}">
+      <section class="day-column" style="--day-index: ${DAYS.indexOf(day)}" data-day="${day}">
         <div class="day-heading">
           <span class="day-name">${day}</span>
           <span class="day-count">${cards.length}</span>
@@ -44,9 +52,33 @@ function render() {
   emptyState.hidden = homework.length > 0;
 }
 
-function cardTemplate(item) {
+function loadProfile() {
+  try {
+    const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || "null");
+    return profile && typeof profile.name === "string" ? profile : null;
+  } catch {
+    return null;
+  }
+}
+
+function applyProfile() {
+  const profile = loadProfile();
+  if (profile) welcomeHeading.textContent = `Welcome back, ${profile.name}.`;
+}
+
+function applyTheme(theme) {
+  const validThemes = ["coffee", "ocean", "sage", "plum"];
+  const selectedTheme = validThemes.includes(theme) ? theme : "coffee";
+  document.documentElement.dataset.theme = selectedTheme;
+  localStorage.setItem(THEME_KEY, selectedTheme);
+  document.querySelectorAll(".theme-option").forEach((option) => {
+    option.classList.toggle("selected", option.dataset.theme === selectedTheme);
+  });
+}
+
+function cardTemplate(item, index) {
   return `
-    <article class="homework-card ${item.completed ? "completed" : ""}" draggable="true" data-id="${item.id}">
+    <article class="homework-card ${item.completed ? "completed" : ""}" style="--card-index: ${index}" draggable="true" data-id="${item.id}">
       <button class="card-menu" type="button" data-delete="${item.id}" aria-label="Delete ${escapeHtml(item.task)}">×</button>
       <h3 class="task-name">${escapeHtml(item.task)}</h3>
       <span class="subject">${escapeHtml(item.subject)}</span>
@@ -123,6 +155,10 @@ function openModal() {
   document.querySelector("#taskInput").focus();
 }
 function closeModal() { modalBackdrop.hidden = true; form.reset(); }
+function closeThemePicker() {
+  themePicker.hidden = true;
+  themeButton.setAttribute("aria-expanded", "false");
+}
 function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
@@ -133,6 +169,35 @@ function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character]);
 }
 
+themeButton.addEventListener("click", () => {
+  themePicker.hidden = !themePicker.hidden;
+  themeButton.setAttribute("aria-expanded", String(!themePicker.hidden));
+});
+document.querySelectorAll(".theme-option").forEach((option) => {
+  option.addEventListener("click", () => {
+    applyTheme(option.dataset.theme);
+    closeThemePicker();
+    showToast("Theme updated");
+  });
+});
+document.addEventListener("click", (event) => {
+  if (!themePicker.hidden && !themePicker.contains(event.target) && event.target !== themeButton) closeThemePicker();
+});
+welcomeForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const name = nameInput.value.trim();
+  if (!name) return;
+  localStorage.setItem(PROFILE_KEY, JSON.stringify({ name }));
+  welcomeBackdrop.hidden = true;
+  applyProfile();
+  showToast(`Nice to meet you, ${name}`);
+});
+document.querySelector("#welcomeBackdrop").addEventListener("click", (event) => {
+  if (event.target === welcomeBackdrop) nameInput.focus();
+});
+
+applyTheme(localStorage.getItem(THEME_KEY) || "coffee");
+applyProfile();
 dayInput.innerHTML = DAYS.map((day) => `<option value="${day}">${day}</option>`).join("");
 document.querySelectorAll("#openModalButton, #emptyAddButton").forEach((button) => button.addEventListener("click", openModal));
 document.querySelector("#closeModalButton").addEventListener("click", closeModal);
@@ -163,3 +228,7 @@ document.querySelector("#clearCompletedButton").addEventListener("click", () => 
 });
 
 render();
+if (!loadProfile()) {
+  welcomeBackdrop.hidden = false;
+  nameInput.focus();
+}
