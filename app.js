@@ -15,8 +15,8 @@ const themePicker = document.querySelector("#themePicker");
 const themeButton = document.querySelector("#themeButton");
 
 let homework = loadHomework();
-let draggedId = null;
 let toastTimer;
+let pointerDrag = null;
 const PROFILE_KEY = "homework-board-profile";
 const THEME_KEY = "homework-board-theme";
 
@@ -94,43 +94,7 @@ function cardTemplate(item, index) {
 
 function bindBoardEvents() {
   document.querySelectorAll(".homework-card").forEach((card) => {
-    card.addEventListener("dragstart", () => {
-      draggedId = card.dataset.id;
-      card.classList.add("dragging");
-    });
-    card.addEventListener("dragend", () => {
-      draggedId = null;
-      card.classList.remove("dragging");
-      document.querySelectorAll(".drag-over").forEach((column) => column.classList.remove("drag-over"));
-    });
-  });
-  document.querySelectorAll(".day-column").forEach((column) => {
-    column.addEventListener("dragover", (event) => { event.preventDefault(); column.classList.add("drag-over"); });
-    column.addEventListener("dragleave", (event) => {
-      if (!column.contains(event.relatedTarget)) column.classList.remove("drag-over");
-    });
-    column.addEventListener("drop", (event) => {
-      event.preventDefault();
-      const item = homework.find((entry) => entry.id === draggedId);
-      if (item && item.day !== column.dataset.day) {
-        const draggedCard = document.querySelector(`[data-id="${item.id}"]`);
-        const targetCards = column.querySelector(".cards");
-        item.day = column.dataset.day;
-        saveHomework();
-        if (draggedCard && targetCards) {
-          targetCards.appendChild(draggedCard);
-          draggedCard.classList.remove("dragging");
-          draggedCard.classList.add("just-moved");
-          setTimeout(() => draggedCard.classList.remove("just-moved"), 500);
-          document.querySelectorAll(".day-column").forEach((dayColumn) => {
-            const count = dayColumn.querySelector(".cards").children.length;
-            dayColumn.querySelector(".day-count").textContent = count;
-          });
-          updateSummary();
-        }
-        showToast(`Moved to ${item.day}`);
-      }
-    });
+    card.addEventListener("pointerdown", (event) => beginPointerDrag(event, card));
   });
   document.querySelectorAll("[data-delete]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -149,6 +113,85 @@ function bindBoardEvents() {
       render();
       showToast(item.completed ? "Nice work — marked complete" : "Marked as active");
     });
+  });
+}
+
+function beginPointerDrag(event, card) {
+  if (event.button !== 0 || event.target.closest("button, input, label")) return;
+  event.preventDefault();
+  pointerDrag = {
+    card,
+    id: card.dataset.id,
+    startX: event.clientX,
+    startY: event.clientY,
+    preview: null,
+    active: false,
+  };
+  document.addEventListener("pointermove", movePointerDrag);
+  document.addEventListener("pointerup", endPointerDrag, { once: true });
+  document.addEventListener("pointercancel", cancelPointerDrag, { once: true });
+}
+
+function movePointerDrag(event) {
+  if (!pointerDrag) return;
+  const distance = Math.hypot(event.clientX - pointerDrag.startX, event.clientY - pointerDrag.startY);
+  if (!pointerDrag.active && distance < 6) return;
+  if (!pointerDrag.active) {
+    pointerDrag.active = true;
+    const bounds = pointerDrag.card.getBoundingClientRect();
+    pointerDrag.preview = pointerDrag.card.cloneNode(true);
+    pointerDrag.preview.classList.add("drag-preview");
+    pointerDrag.preview.style.width = `${bounds.width}px`;
+    document.body.appendChild(pointerDrag.preview);
+    pointerDrag.card.classList.add("drag-placeholder");
+  }
+  pointerDrag.preview.style.left = `${event.clientX - pointerDrag.preview.offsetWidth / 2}px`;
+  pointerDrag.preview.style.top = `${event.clientY - 20}px`;
+  const target = document.elementFromPoint(event.clientX, event.clientY)?.closest(".day-column");
+  document.querySelectorAll(".drag-over").forEach((column) => column.classList.toggle("drag-over", column === target));
+}
+
+function endPointerDrag(event) {
+  if (!pointerDrag) return;
+  document.removeEventListener("pointermove", movePointerDrag);
+  document.removeEventListener("pointercancel", cancelPointerDrag);
+  const drag = pointerDrag;
+  pointerDrag = null;
+  if (!drag.active) return;
+  const target = document.elementFromPoint(event.clientX, event.clientY)?.closest(".day-column");
+  const item = homework.find((entry) => entry.id === drag.id);
+  const targetCards = target?.querySelector(".cards");
+  if (item && targetCards && target.dataset.day !== item.day) {
+    item.day = target.dataset.day;
+    saveHomework();
+    targetCards.appendChild(drag.card);
+    updateDayCounts();
+    updateSummary();
+    drag.card.classList.add("just-moved");
+    setTimeout(() => drag.card.classList.remove("just-moved"), 500);
+    showToast(`Moved to ${item.day}`);
+  }
+  cleanupPointerDrag(drag);
+}
+
+function cancelPointerDrag() {
+  if (!pointerDrag) return;
+  const drag = pointerDrag;
+  pointerDrag = null;
+  document.removeEventListener("pointermove", movePointerDrag);
+  document.removeEventListener("pointerup", endPointerDrag);
+  cleanupPointerDrag(drag);
+}
+
+function cleanupPointerDrag(drag) {
+  drag.card.classList.remove("drag-placeholder");
+  drag.preview?.remove();
+  document.querySelectorAll(".drag-over").forEach((column) => column.classList.remove("drag-over"));
+}
+
+function updateDayCounts() {
+  document.querySelectorAll(".day-column").forEach((column) => {
+    column.querySelector(".day-count").textContent = column.querySelector(".cards").children.length;
   });
 }
 
