@@ -37,7 +37,7 @@ function render() {
   board.innerHTML = DAYS.map((day) => {
     const cards = homework.filter((item) => item.day === day);
     return `
-      <section class="day-column" style="--day-index: ${DAYS.indexOf(day)}" data-day="${day}">
+      <section class="day-column" data-day="${day}">
         <div class="day-heading">
           <span class="day-name">${day}</span>
           <span class="day-count">${cards.length}</span>
@@ -78,7 +78,7 @@ function applyTheme(theme) {
 
 function cardTemplate(item, index) {
   return `
-    <article class="homework-card ${item.completed ? "completed" : ""}" style="--card-index: ${index}" draggable="true" data-id="${item.id}">
+    <article class="homework-card ${item.completed ? "completed" : ""}" draggable="true" data-id="${item.id}">
       <button class="card-menu" type="button" data-delete="${item.id}" aria-label="Delete ${escapeHtml(item.task)}">×</button>
       <h3 class="task-name">${escapeHtml(item.task)}</h3>
       <span class="subject">${escapeHtml(item.subject)}</span>
