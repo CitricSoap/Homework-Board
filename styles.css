@@ -71,7 +71,6 @@ h2 { margin-bottom: 6px; font: 700 28px "Plus Jakarta Sans", sans-serif; letter-
 .day-name { font-size: 12px; font-weight: 700; }.day-count { min-width: 20px; padding: 3px 5px; border-radius: 6px; color: var(--muted); background: #e2d8d0; font-size: 10px; font-weight: 700; text-align: center; }
 .cards { display: grid; gap: 9px; min-height: 310px; align-content: start; }
 .homework-card { position: relative; padding: 14px 13px 13px; border: 1px solid rgba(230, 217, 207, .9); border-radius: 9px; background: var(--paper); box-shadow: 0 4px 10px rgba(75, 48, 35, .045); cursor: grab; transition: opacity .2s, transform .2s, box-shadow .2s; animation: cardReveal .35s ease both; animation-delay: calc(var(--card-index) * 55ms + 160ms); }
-.board.is-moving .day-column, .board.is-moving .homework-card { animation: none; }
 .homework-card.just-moved { animation: cardLand .48s cubic-bezier(.2,.8,.2,1) both; }
 .homework-card:active { cursor: grabbing; }.homework-card.dragging { opacity: .35; transform: rotate(2deg); }.homework-card:hover { box-shadow: 0 8px 18px rgba(75, 48, 35, .1); }
 .homework-card.completed { background: #f7fbf9; }.homework-card.completed .task-name { color: #89928d; text-decoration: line-through; }.homework-card.completed .subject { color: var(--green); }
