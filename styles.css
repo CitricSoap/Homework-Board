@@ -88,7 +88,14 @@ h2 { margin-bottom: 6px; font: 700 28px "Plus Jakarta Sans", sans-serif; letter-
 .homework-card.completed { background: #f7fbf9; }.homework-card.completed .task-name { color: #89928d; text-decoration: line-through; }.homework-card.completed .subject { color: var(--green); }
 .card-top { display: flex; justify-content: space-between; gap: 8px; }.task-name { margin: 0 0 9px; padding-right: 12px; font-size: 13px; font-weight: 700; line-height: 1.35; }
 .card-menu { position: absolute; top: 9px; right: 8px; border: 0; color: #ad9c92; background: transparent; font-size: 17px; line-height: 1; }.card-menu:hover { color: #a14f43; }
-.subject { display: inline-block; padding: 4px 8px; border: 1px solid rgba(255,255,255,.45); border-radius: 6px; color: var(--coffee); background: var(--coffee-soft); box-shadow: inset 0 1px 0 rgba(255,255,255,.5); font-size: 10px; font-weight: 700; }
+.subject, .due-date { display: inline-block; padding: 4px 8px; border: 1px solid rgba(255,255,255,.45); border-radius: 6px; box-shadow: inset 0 1px 0 rgba(255,255,255,.5); font-size: 10px; font-weight: 700; }
+.subject { color: var(--coffee); background: var(--coffee-soft); }
+.due-date { margin: 9px 0 0; }
+.due-date-overdue { color: #a13e39; background: #f8dfdc; border-color: #edb8b2; }
+.due-date-today { color: #9b5b19; background: #ffedc7; border-color: #f1cf91; }
+.due-date-soon { color: #786319; background: #f5efc9; border-color: #e5d889; }
+.due-date-upcoming { color: var(--green); background: #e1eee6; border-color: #bdd7c6; }
+.due-date-complete { color: var(--green); background: #e1eee6; border-color: #bdd7c6; }
 .notes { margin: 10px 0 0; color: var(--muted); font-size: 11px; line-height: 1.4; }.card-footer { display: flex; align-items: center; margin-top: 13px; }
 .complete-label { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 10px; cursor: pointer; }.complete-label input { width: 15px; height: 15px; margin: 0; accent-color: var(--green); }
 .empty-state { max-width: 360px; margin: 50px auto 0; padding: 30px; border: 1px dashed #d5c4b7; border-radius: 16px; background: rgba(255,253,249,.6); box-shadow: 0 14px 30px rgba(75,48,35,.045); text-align: center; }.empty-state[hidden] { display: none; }
