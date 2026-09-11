@@ -18,8 +18,11 @@ const themeButton = document.querySelector("#themeButton");
 let homework = loadHomework();
 let toastTimer;
 let pointerDrag = null;
+let dragFrame = 0;
+let dragOverColumn = null;
 const PROFILE_KEY = "homework-board-profile";
 const THEME_KEY = "homework-board-theme";
+const dateFormatter = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" });
 
 function loadHomework() {
   try {
@@ -35,6 +38,7 @@ function saveHomework() {
 }
 
 function render() {
+  const today = startOfToday();
   board.innerHTML = DAYS.map((day) => {
     const cards = homework.filter((item) => item.day === day);
     return `
@@ -44,11 +48,10 @@ function render() {
           <span class="day-count">${cards.length}</span>
         </div>
         <div class="cards" data-day="${day}">
-          ${cards.map(cardTemplate).join("")}
+          ${cards.map((card) => cardTemplate(card, today)).join("")}
         </div>
       </section>`;
   }).join("");
-  bindBoardEvents();
   updateSummary();
   emptyState.hidden = homework.length > 0;
 }
@@ -77,8 +80,8 @@ function applyTheme(theme) {
   });
 }
 
-function cardTemplate(item, index) {
-  const dueStatus = getDueStatus(item.dueDate, item.completed);
+function cardTemplate(item, today) {
+  const dueStatus = getDueStatus(item.dueDate, item.completed, today);
   const dueTitle = isValidDateValue(item.dueDate) ? `Due ${formatDate(item.dueDate)}` : "No due date";
   return `
     <article class="homework-card ${item.completed ? "completed" : ""}" draggable="true" data-id="${item.id}">
@@ -105,10 +108,9 @@ function isValidDateValue(value) {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
-function getDueStatus(dueDate, completed) {
+function getDueStatus(dueDate, completed, today = startOfToday()) {
   if (!isValidDateValue(dueDate)) return { className: "upcoming", label: "No due date", icon: "•" };
   if (completed) return { className: "complete", label: `Due ${formatDate(dueDate)}`, icon: "✓" };
-  const today = startOfToday();
   const due = new Date(`${dueDate}T00:00:00`);
   const daysUntilDue = Math.round((due - today) / 86400000);
   if (daysUntilDue < 0) return { className: "overdue", label: `Overdue · ${formatDate(dueDate)}`, icon: "!" };
@@ -124,33 +126,31 @@ function startOfToday() {
 }
 
 function formatDate(value) {
-  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" })
-    .format(new Date(`${value}T00:00:00`));
+  return dateFormatter.format(new Date(`${value}T00:00:00`));
 }
 
-function bindBoardEvents() {
-  document.querySelectorAll(".homework-card").forEach((card) => {
-    card.addEventListener("pointerdown", (event) => beginPointerDrag(event, card));
-  });
-  document.querySelectorAll("[data-delete]").forEach((button) => {
-    button.addEventListener("click", () => {
-      homework = homework.filter((item) => item.id !== button.dataset.delete);
-      saveHomework();
-      render();
-      showToast("Homework deleted");
-    });
-  });
-  document.querySelectorAll("[data-complete]").forEach((checkbox) => {
-    checkbox.addEventListener("change", () => {
-      const item = homework.find((entry) => entry.id === checkbox.dataset.complete);
-      if (!item) return;
-      item.completed = checkbox.checked;
-      saveHomework();
-      render();
-      showToast(item.completed ? "Nice work — marked complete" : "Marked as active");
-    });
-  });
-}
+board.addEventListener("pointerdown", (event) => {
+  const card = event.target.closest(".homework-card");
+  if (card) beginPointerDrag(event, card);
+});
+board.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-delete]");
+  if (!button) return;
+  homework = homework.filter((item) => item.id !== button.dataset.delete);
+  saveHomework();
+  render();
+  showToast("Homework deleted");
+});
+board.addEventListener("change", (event) => {
+  const checkbox = event.target.closest("[data-complete]");
+  if (!checkbox) return;
+  const item = homework.find((entry) => entry.id === checkbox.dataset.complete);
+  if (!item) return;
+  item.completed = checkbox.checked;
+  saveHomework();
+  render();
+  showToast(item.completed ? "Nice work — marked complete" : "Marked as active");
+});
 
 function beginPointerDrag(event, card) {
   if (event.button !== 0 || event.target.closest("button, input, label")) return;
@@ -177,14 +177,25 @@ function movePointerDrag(event) {
     const bounds = pointerDrag.card.getBoundingClientRect();
     pointerDrag.preview = pointerDrag.card.cloneNode(true);
     pointerDrag.preview.classList.add("drag-preview");
+    pointerDrag.previewWidth = bounds.width;
     pointerDrag.preview.style.width = `${bounds.width}px`;
     document.body.appendChild(pointerDrag.preview);
     pointerDrag.card.classList.add("drag-placeholder");
   }
-  pointerDrag.preview.style.left = `${event.clientX - pointerDrag.preview.offsetWidth / 2}px`;
-  pointerDrag.preview.style.top = `${event.clientY - 20}px`;
-  const target = document.elementFromPoint(event.clientX, event.clientY)?.closest(".day-column");
-  document.querySelectorAll(".drag-over").forEach((column) => column.classList.toggle("drag-over", column === target));
+  pointerDrag.x = event.clientX;
+  pointerDrag.y = event.clientY;
+  if (dragFrame) return;
+  dragFrame = requestAnimationFrame(() => {
+    dragFrame = 0;
+    if (!pointerDrag) return;
+    pointerDrag.preview.style.transform = `translate3d(${pointerDrag.x - pointerDrag.previewWidth / 2}px, ${pointerDrag.y - 20}px, 0) rotate(2deg) scale(1.03)`;
+    const target = document.elementFromPoint(pointerDrag.x, pointerDrag.y)?.closest(".day-column");
+    if (target !== dragOverColumn) {
+      dragOverColumn?.classList.remove("drag-over");
+      target?.classList.add("drag-over");
+      dragOverColumn = target;
+    }
+  });
 }
 
 function endPointerDrag(event) {
@@ -220,9 +231,14 @@ function cancelPointerDrag() {
 }
 
 function cleanupPointerDrag(drag) {
+  if (dragFrame) {
+    cancelAnimationFrame(dragFrame);
+    dragFrame = 0;
+  }
   drag.card.classList.remove("drag-placeholder");
   drag.preview?.remove();
-  document.querySelectorAll(".drag-over").forEach((column) => column.classList.remove("drag-over"));
+  dragOverColumn?.classList.remove("drag-over");
+  dragOverColumn = null;
 }
 
 function updateDayCounts() {
