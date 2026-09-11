@@ -6,6 +6,7 @@ const emptyState = document.querySelector("#emptyState");
 const modalBackdrop = document.querySelector("#modalBackdrop");
 const form = document.querySelector("#homeworkForm");
 const dayInput = document.querySelector("#dayInput");
+const dueDateInput = document.querySelector("#dueDateInput");
 const toast = document.querySelector("#toast");
 const welcomeBackdrop = document.querySelector("#welcomeBackdrop");
 const welcomeForm = document.querySelector("#welcomeForm");
@@ -77,11 +78,17 @@ function applyTheme(theme) {
 }
 
 function cardTemplate(item, index) {
+  const dueStatus = getDueStatus(item.dueDate, item.completed);
+  const dueTitle = isValidDateValue(item.dueDate) ? `Due ${formatDate(item.dueDate)}` : "No due date";
   return `
     <article class="homework-card ${item.completed ? "completed" : ""}" draggable="true" data-id="${item.id}">
       <button class="card-menu" type="button" data-delete="${item.id}" aria-label="Delete ${escapeHtml(item.task)}">×</button>
       <h3 class="task-name">${escapeHtml(item.task)}</h3>
       <span class="subject">${escapeHtml(item.subject)}</span>
+      <span class="due-date due-date-${dueStatus.className}" title="${dueTitle}">
+        <span aria-hidden="true">${dueStatus.icon}</span>
+        ${dueStatus.label}
+      </span>
       ${item.notes ? `<p class="notes">${escapeHtml(item.notes)}</p>` : ""}
       <div class="card-footer">
         <label class="complete-label">
@@ -90,6 +97,35 @@ function cardTemplate(item, index) {
         </label>
       </div>
     </article>`;
+}
+
+function isValidDateValue(value) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+function getDueStatus(dueDate, completed) {
+  if (!isValidDateValue(dueDate)) return { className: "upcoming", label: "No due date", icon: "•" };
+  if (completed) return { className: "complete", label: `Due ${formatDate(dueDate)}`, icon: "✓" };
+  const today = startOfToday();
+  const due = new Date(`${dueDate}T00:00:00`);
+  const daysUntilDue = Math.round((due - today) / 86400000);
+  if (daysUntilDue < 0) return { className: "overdue", label: `Overdue · ${formatDate(dueDate)}`, icon: "!" };
+  if (daysUntilDue === 0) return { className: "today", label: "Due today", icon: "!" };
+  if (daysUntilDue <= 3) return { className: "soon", label: `Due ${formatDate(dueDate)}`, icon: "•" };
+  return { className: "upcoming", label: `Due ${formatDate(dueDate)}`, icon: "•" };
+}
+
+function startOfToday() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+}
+
+function formatDate(value) {
+  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" })
+    .format(new Date(`${value}T00:00:00`));
 }
 
 function bindBoardEvents() {
@@ -207,6 +243,7 @@ function updateSummary() {
 function openModal() {
   modalBackdrop.hidden = false;
   dayInput.value = DAYS[0];
+  dueDateInput.value = "";
   document.querySelector("#taskInput").focus();
 }
 function closeModal() { modalBackdrop.hidden = true; form.reset(); }
@@ -267,6 +304,7 @@ form.addEventListener("submit", (event) => {
     task: formData.get("task").trim(),
     subject: formData.get("subject").trim(),
     day: formData.get("day"),
+    dueDate: formData.get("dueDate"),
     notes: formData.get("notes").trim(),
     completed: false,
   });

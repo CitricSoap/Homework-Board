@@ -5,8 +5,9 @@ A calm, simple weekly planner for keeping assignments in view. Add homework, dra
 ## Features
 
 - Seven-day drag-and-drop board
-- Add assignments with a subject, day, and optional notes
+- Add assignments with a subject, day, due date, and optional notes
 - Mark work complete and track weekly progress
+- See color-coded due-date warnings for overdue, today, soon, and upcoming work
 - Clear completed assignments in one click
 - Persists automatically in the browser with `localStorage`
 - Responsive layout with a warm espresso-inspired visual theme
@@ -23,7 +24,7 @@ Then visit [http://localhost:8000](http://localhost:8000).
 
 ## Usage
 
-1. Select **Add homework** and enter an assignment.
+1. Select **Add homework** and enter an assignment and due date.
 2. Drag a card to another day when plans change.
 3. Check an assignment when it is finished.
 
