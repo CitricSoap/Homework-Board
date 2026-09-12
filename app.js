@@ -110,14 +110,21 @@ function isValidDateValue(value) {
 
 function getDueStatus(dueDate, completed) {
   if (!isValidDateValue(dueDate)) return { className: "upcoming", label: "No due date", icon: "•" };
-  if (completed) return { className: "complete", label: `Due ${formatDate(dueDate)}`, icon: "✓" };
   const today = startOfToday();
   const due = new Date(`${dueDate}T00:00:00`);
   const daysUntilDue = Math.round((due - today) / 86400000);
-  if (daysUntilDue < 0) return { className: "overdue", label: `Overdue · ${formatDate(dueDate)}`, icon: "!" };
+  if (completed) return { className: "complete", label: `Completed · ${formatDueCountdown(daysUntilDue).toLowerCase()}`, icon: "✓" };
+  if (daysUntilDue < 0) return { className: "overdue", label: formatDueCountdown(daysUntilDue), icon: "!" };
   if (daysUntilDue === 0) return { className: "today", label: "Due today", icon: "!" };
-  if (daysUntilDue <= 3) return { className: "soon", label: `Due ${formatDate(dueDate)}`, icon: "•" };
-  return { className: "upcoming", label: `Due ${formatDate(dueDate)}`, icon: "•" };
+  if (daysUntilDue <= 3) return { className: "soon", label: formatDueCountdown(daysUntilDue), icon: "•" };
+  return { className: "upcoming", label: formatDueCountdown(daysUntilDue), icon: "•" };
+}
+
+function formatDueCountdown(daysUntilDue) {
+  if (daysUntilDue === 0) return "Due today";
+  const days = Math.abs(daysUntilDue);
+  const dayLabel = `${days} day${days === 1 ? "" : "s"}`;
+  return daysUntilDue < 0 ? `Overdue · ${dayLabel} ago` : `Due in ${dayLabel}`;
 }
 
 function startOfToday() {
