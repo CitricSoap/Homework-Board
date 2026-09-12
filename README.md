@@ -1,6 +1,12 @@
 # Homework Board
 
-A calm, simple weekly planner for keeping assignments in view. Add homework, drag it between days, and mark it complete as you go.
+[![Latest release](https://img.shields.io/github/v/release/CitricSoap/Homework-Board?label=download)](https://github.com/CitricSoap/Homework-Board/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+Homework Board is a calm, simple weekly planner for students and families.
+Add assignments, drag them between days, and mark them complete as you go.
+Your board stays on the device where you use it; no account or server is
+required.
 
 ## Features
 
@@ -12,32 +18,39 @@ A calm, simple weekly planner for keeping assignments in view. Add homework, dra
 - Persists automatically in the browser with `localStorage`
 - Responsive layout with a warm espresso-inspired visual theme
 
-## Run locally
+## Use the web app locally
 
-This is a dependency-free static app. Open `index.html` in a browser, or serve the folder locally:
+The web app is dependency-free. Serve the `web` folder locally:
 
 ```bash
-python -m http.server
+python -m http.server --directory web
 ```
 
 Then visit [http://localhost:8000](http://localhost:8000).
 
-## Build a Windows `.exe`
+## Install the Windows app
 
-The app can also be packaged as a native Windows desktop application with
-[Tauri](https://tauri.app/). Tauri keeps the existing HTML, CSS, and JavaScript
-and wraps it in a small native executable.
+Windows users do not need Node.js, Rust, or the source code. Download the
+latest `Homework Board_*_x64-setup.exe` file from the
+[GitHub Releases page](https://github.com/CitricSoap/Homework-Board/releases),
+then double-click it and follow the installer prompts. The `-setup.exe` file is
+the only file needed for installation.
 
-1. Install [Node.js LTS](https://nodejs.org/) and the
-   [Rust toolchain](https://www.rust-lang.org/tools/install) on Windows.
-2. Install the Windows prerequisites for Tauri, including
-   [WebView2](https://tauri.app/start/prerequisites/#webview2).
-3. From the project folder, run:
+## Build from source
 
-   ```powershell
-   npm install
-   npm run tauri build
-   ```
+The app can be packaged as a native Windows desktop application with
+[Tauri](https://tauri.app/). This requires [Node.js
+LTS](https://nodejs.org/), the [Rust
+toolchain](https://www.rust-lang.org/tools/install), and the Windows
+prerequisites for Tauri, including
+[WebView2](https://tauri.app/start/prerequisites/#webview2).
+
+From the project folder, run:
+
+```powershell
+npm install
+npm run tauri build
+```
 
 The native executable is written to `src-tauri\target\release\`. Installers are
 written under `src-tauri\target\release\bundle\`. The NSIS installer is the
@@ -46,25 +59,14 @@ tools.
 
 For a development desktop build, use `npm run tauri dev`.
 
-A minimal Windows app icon is included at `src-tauri\icons\icon.ico`. It can
-be replaced with a branded icon later while keeping the same
-`bundle.icon` configuration.
-
-## Install on Windows
-
-Windows users do not need Node.js, Rust, or the source code. Download the
-latest `Homework Board_*_x64-setup.exe` file from the
-[GitHub Releases page](https://github.com/CitricSoap/Homework-Board/releases),
-then double-click it and follow the installer prompts. The `-setup.exe` file is
-the only file needed for installation.
-
 ## Usage
 
 1. Select **Add homework** and enter an assignment and due date.
 2. Drag a card to another day when plans change.
 3. Check an assignment when it is finished.
 
-Your assignments stay in the current browser. Clearing browser storage resets the board.
+Your assignments stay in the current browser or desktop app. Clearing its
+storage resets the board.
 
 ## Project structure
 
@@ -74,3 +76,7 @@ Your assignments stay in the current browser. Clearing browser storage resets th
 | `web\styles.css` | Layout, responsive styles, and espresso color system |
 | `web\app.js` | Board rendering, drag-and-drop, persistence, and interactions |
 | `src-tauri\` | Native Windows/Tauri packaging configuration |
+
+## License
+
+Homework Board is released under the [MIT License](LICENSE).
