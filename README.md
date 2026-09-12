@@ -50,6 +50,14 @@ A minimal Windows app icon is included at `src-tauri\icons\icon.ico`. It can
 be replaced with a branded icon later while keeping the same
 `bundle.icon` configuration.
 
+## Install on Windows
+
+Windows users do not need Node.js, Rust, or the source code. Download the
+latest `Homework Board_*_x64-setup.exe` file from the
+[GitHub Releases page](https://github.com/CitricSoap/Homework-Board/releases),
+then double-click it and follow the installer prompts. The `-setup.exe` file is
+the only file needed for installation.
+
 ## Usage
 
 1. Select **Add homework** and enter an assignment and due date.
