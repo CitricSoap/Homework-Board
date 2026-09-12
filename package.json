@@ -1,0 +1,12 @@
+{
+  "name": "homework-board",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A calm, drag-and-drop homework planner",
+  "scripts": {
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.8.0"
+  }
+}
