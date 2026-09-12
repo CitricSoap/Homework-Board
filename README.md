@@ -7,7 +7,7 @@ A calm, simple weekly planner for keeping assignments in view. Add homework, dra
 - Seven-day drag-and-drop board
 - Add assignments with a subject, day, due date, and optional notes
 - Mark work complete and track weekly progress
-- See color-coded due-date warnings for overdue, today, soon, and upcoming work
+- See color-coded due-date countdowns for overdue, today, soon, and upcoming work
 - Clear completed assignments in one click
 - Persists automatically in the browser with `localStorage`
 - Responsive layout with a warm espresso-inspired visual theme
