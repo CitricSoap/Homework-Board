@@ -35,10 +35,12 @@ function saveHomework() {
 }
 
 function render() {
+  const today = DAYS[(new Date().getDay() + 6) % 7];
   board.innerHTML = DAYS.map((day) => {
     const cards = homework.filter((item) => item.day === day);
+    const isToday = day === today;
     return `
-      <section class="day-column" data-day="${day}">
+      <section class="day-column${isToday ? " current-day" : ""}" data-day="${day}"${isToday ? ' aria-current="date"' : ""}>
         <div class="day-heading">
           <span class="day-name">${day}</span>
           <span class="day-count">${cards.length}</span>
@@ -101,8 +103,9 @@ function cardTemplate(item, index) {
 
 function isValidDateValue(value) {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const date = new Date(`${value}T00:00:00`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
 function getDueStatus(dueDate, completed) {
