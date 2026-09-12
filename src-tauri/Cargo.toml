@@ -1,0 +1,16 @@
+[package]
+name = "homework-board"
+version = "0.1.0"
+description = "A calm, drag-and-drop homework planner"
+authors = ["CitricSoap"]
+edition = "2021"
+
+[lib]
+name = "homework_board_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
