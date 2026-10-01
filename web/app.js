@@ -70,7 +70,7 @@ function applyProfile() {
 }
 
 function applyTheme(theme) {
-  const validThemes = ["coffee", "ocean", "sage", "plum"];
+  const validThemes = ["coffee", "ocean", "sage", "plum", "bloom"];
   const selectedTheme = validThemes.includes(theme) ? theme : "coffee";
   document.documentElement.dataset.theme = selectedTheme;
   localStorage.setItem(THEME_KEY, selectedTheme);
