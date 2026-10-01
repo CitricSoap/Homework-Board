@@ -15,6 +15,7 @@ required.
 - Mark work complete and track weekly progress
 - See color-coded due-date countdowns for overdue, today, soon, and upcoming work
 - Clear completed assignments in one click
+- Optional Bloom theme with white marble, champagne-gold, and vivid fuchsia card accents
 - Persists automatically in the browser with `localStorage`
 - Responsive layout with a warm espresso-inspired visual theme
 
