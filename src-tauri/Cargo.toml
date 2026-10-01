@@ -1,6 +1,6 @@
 [package]
 name = "homework-board"
-version = "1.0.1"
+version = "1.1.0"
 description = "A calm, drag-and-drop homework planner"
 authors = ["CitricSoap"]
 license = "MIT"
